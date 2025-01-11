@@ -224,12 +224,14 @@ int main(int argc, char *argv[])
         //             in place.  Briefly explain why the string
         //             is reversed in place - place in a comment
 
-        // The string is reversed in place because we are 
-        // creating a temporary variable to hold the current
+        // The string is reversed in place because we are not 
+        // allocating any new memory to store a second string.
+        // We are creating a temporary variable to hold the current
         // character and then swapping the current character
         // with the character at the end of the string. We
         // then use the temporary variable to have the character
         // at the end of the string use the current character.
+
         break;
     case 'w':
         printf("Word Print\n----------\n");
@@ -246,6 +248,7 @@ int main(int argc, char *argv[])
     // The reason for the default option is to handle all invalid
     // options. If the user provides an option the program does not
     // recognize, the program will print an error message and exit.
+    // The default option is used to handle all invalid options.
 
     default:
         usage(argv[0]);
