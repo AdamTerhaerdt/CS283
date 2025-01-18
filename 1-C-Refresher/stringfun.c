@@ -182,8 +182,81 @@ int word_print(char *buff, int len, int str_len){
 }
 
 int replace_string(char *buff, int len, int str_len, char *search, char *replace) {
-    //TODO: Implement replace_string
-    return 0;
+    int search_len = 0;
+    int replace_len = 0;
+    char *search_ptr = search;
+    char *replace_ptr = replace;
+    char *temp = malloc(len * sizeof(char));
+    int new_len = str_len;
+    char *buff_ptr = buff;
+    char *temp_ptr = temp;
+    
+    //get length of search string
+    while(*search_ptr != '\0') {
+        search_len++;
+        search_ptr++;
+    }
+    
+    //get length of replace string
+    while(*replace_ptr != '\0') {
+        replace_len++;
+        replace_ptr++;
+    }
+
+    //reset pointers
+    search_ptr = search;
+    replace_ptr = replace;
+
+    //copy original string to temp buffer
+    while(str_len > 0) {
+        *temp_ptr = *buff_ptr;
+        temp_ptr++;
+        buff_ptr++;
+        str_len--;
+    }
+    *temp_ptr = '\0';
+
+    //reset pointers and counters
+    buff_ptr = buff;
+    temp_ptr = temp;
+    
+    while(*temp_ptr != '\0') {
+        //check if we found the search word
+        char *temp_check = temp_ptr;
+        char *search_check = search_ptr;
+        int match = 1;
+        
+        //compare characters
+        for(int i = 0; i < search_len; i++) {
+            if(*temp_check == '\0' || *temp_check != *search_check) {
+                match = 0;
+                break;
+            }
+            temp_check++;
+            search_check++;
+        }
+        
+        if(match) {
+            //copy replacement word
+            replace_ptr = replace;
+            for(int i = 0; i < replace_len; i++) {
+                *buff_ptr = *replace_ptr;
+                buff_ptr++;
+                replace_ptr++;
+            }
+            temp_ptr += search_len;
+            new_len = new_len - search_len + replace_len;
+        } else {
+            //make sure we use the original character
+            *buff_ptr = *temp_ptr;
+            buff_ptr++;
+            temp_ptr++;
+        }
+    }
+
+    free(temp);
+    return new_len;
+    //finally done that took a long time...
 }
 
 int main(int argc, char *argv[]){
