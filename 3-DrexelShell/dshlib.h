@@ -8,6 +8,8 @@
 // Longest command that can be read from the shell
 #define SH_CMD_MAX EXE_MAX + ARG_MAX
 
+#define DRAGON "dragon" 
+
 typedef struct command
 {
     char exe[EXE_MAX];
