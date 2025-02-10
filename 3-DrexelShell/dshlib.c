@@ -34,73 +34,73 @@
  */
 int build_cmd_list(char *cmd_line, command_list_t *clist)
 {
-    //Use memset to initialize the command list (set all values to 0)
+    //Initialize the command list to all zeros
     memset(clist, 0, sizeof(command_list_t));
-    
-    //Check for empty command
+
+    //Check for empty command line
     if (strlen(cmd_line) == 0) {
         return WARN_NO_CMDS;
     }
 
-    // Make a copy of cmd_line since strtok modifies the string
+    //Copy the command line to a new string
     char cmd_line_copy[SH_CMD_MAX];
     strcpy(cmd_line_copy, cmd_line);
 
-    // Split commands by pipe character
-    char *cmd_str = strtok(cmd_line_copy, PIPE_STRING);
-    while (cmd_str != NULL && clist->num < CMD_MAX) {
-        printf("DEBUG: Found command: '%s'\n", cmd_str);
+    //Split commands by pipe character
+    char *save_ptr1;
+    char *cmd_str = strtok_r(cmd_line_copy, PIPE_STRING, &save_ptr1);
+    
+    while (cmd_str != NULL) {
         
-        // Trim leading/trailing spaces
+        //Trim leading/trailing spaces
+        //Used this stackoverflow post
+        //https://stackoverflow.com/questions/122616/how-do-i-trim-leading-trailing-whitespace-in-a-standard-way
         while(isspace(*cmd_str)) cmd_str++;
         char *end = cmd_str + strlen(cmd_str) - 1;
         while(end > cmd_str && isspace(*end)) end--;
         *(end + 1) = '\0';
 
-        // Skip empty commands
+        //Continue if the command is empty
         if (strlen(cmd_str) == 0) {
-            cmd_str = strtok(NULL, PIPE_STRING);
+            cmd_str = strtok_r(NULL, PIPE_STRING, &save_ptr1);
             continue;
         }
 
-        // Make a copy of the command for argument parsing
+        if (clist->num >= CMD_MAX) {
+            return ERR_TOO_MANY_COMMANDS;
+        }
+
+        // Make a copy of cmd_str for tokenizing
         char cmd_copy[SH_CMD_MAX];
-        strncpy(cmd_copy, cmd_str, SH_CMD_MAX - 1);
-        cmd_copy[SH_CMD_MAX - 1] = '\0';
+        strcpy(cmd_copy, cmd_str);
 
-        // Get executable name (first token)
-        char *token = strtok(cmd_copy, " ");
+        char *save_ptr2;
+        char *token = strtok_r(cmd_copy, " ", &save_ptr2);
         if (token != NULL) {
-            if (strlen(token) >= EXE_MAX) {
-                return ERR_CMD_OR_ARGS_TOO_BIG;
-            }
+            //Store the exe in the command list
             strcpy(clist->commands[clist->num].exe, token);
-
-            // Get remaining tokens as arguments
             char args[ARG_MAX] = "";
-            token = strtok(NULL, " ");
+            token = strtok_r(NULL, " ", &save_ptr2);
+
+            //Go through each arg and store it in the command list
             while (token != NULL) {
-                if (strlen(args) + strlen(token) + 2 >= ARG_MAX) {
+                //Check if the arg is too big
+                if (strlen(args) + strlen(token) + 2 > ARG_MAX) {
                     return ERR_CMD_OR_ARGS_TOO_BIG;
                 }
+                //Add a space between args if there are any
                 if (strlen(args) > 0) {
                     strcat(args, " ");
                 }
                 strcat(args, token);
-                token = strtok(NULL, " ");
+                token = strtok_r(NULL, " ", &save_ptr2);
             }
+            //Store the args in the command list
             strcpy(clist->commands[clist->num].args, args);
         }
-
-        printf("DEBUG: Added command %d: %s\n", clist->num, clist->commands[clist->num].exe);
         clist->num++;
-        cmd_str = strtok(NULL, PIPE_STRING);
-        printf("DEBUG: Next command: %s\n", cmd_str);
+        cmd_str = strtok_r(NULL, PIPE_STRING, &save_ptr1);
     }
 
-    if (clist->num >= CMD_MAX) {
-        return ERR_TOO_MANY_COMMANDS;
-    }
-
-    return clist->num > 0 ? OK : WARN_NO_CMDS;
+    return OK;
 }
